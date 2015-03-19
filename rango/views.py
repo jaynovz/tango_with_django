@@ -20,8 +20,7 @@ def index(request):
     page_list = Page.objects.order_by('-views')[:5]
     context_dict = {'categories': category_list, 'pages': page_list}
 
-    for page in page_list:
-        page.url = page.title.replace(' ', '_')
+
 
     # Render the response and send it back!
     return render_to_response('rango/index.html', context_dict, context)
