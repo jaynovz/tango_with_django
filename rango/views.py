@@ -7,6 +7,7 @@ from rango.models import Page
 
 from rango.forms import CategoryForm
 
+
 def add_category(request):
     # Get the context from the request.
     context = RequestContext(request)
