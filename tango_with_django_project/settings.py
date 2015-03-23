@@ -130,6 +130,10 @@ INSTALLED_APPS = (
     'rango'
 )
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE=True
+
+SESSION_COOKIE_AGE=1209600
+
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 
 # A sample logging configuration. The only tangible logging

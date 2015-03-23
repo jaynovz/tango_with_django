@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from rango.models import Category
 from rango.models import Page
+from datetime import datetime
 
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 
@@ -38,6 +39,8 @@ def add_category(request):
     return render_to_response('rango/add_category.html', {'form': form}, context)
 
 def index(request):
+    request.session.set_test_cookie()
+
     # Obtain the context from the HTTP request.
     context = RequestContext(request)
 
@@ -53,24 +56,40 @@ def index(request):
     page_list = Page.objects.order_by('-views')[:5]
     context_dict = {'categories': category_list, 'pages': page_list}
 
+    if request.session.get('last_visit'):
+        # The session has a value for the last visit
+        last_visit_time = request.session.get('last_visit')
+        visits = request.session.get('visits', 0)
 
+        if (datetime.now() - datetime.strptime(last_visit_time[:-7], "%Y-%m-%d %H:%M:%S")).days > 0:
+            request.session['visits'] = visits + 1
+            request.session['last_visit'] = str(datetime.now())
+    else:
+        # The get returns None, and the session does not have a value for the last visit.
+        request.session['last_visit'] = str(datetime.now())
+        request.session['visits'] = 1
 
-    # Render the response and send it back!
+     # Obtain our Response object early so we can add cookie information.
     return render_to_response('rango/index.html', context_dict, context)
+
+
+
 
 def about(request):
      # Request the context of the request.
     # The context contains information such as the client's machine details, for example.
     context = RequestContext(request)
 
-    # Construct a dictionary to pass to the template engine as its context.
-    # Note the key boldmessage is the same as {{ boldmessage }} in the template!
-    context_dict = {'boldmessage': ""}
+    # If the visits session varible exists, take it and use it.
+    # If it doesn't, we haven't visited the site so set the count to zero.
+    if request.session.get('visits'):
+        count = request.session.get('visits')
+    else:
+        count = 0
+    request.session['visits'] = count + 1
+        # remember to include the visit data
+    return render_to_response('rango/about.html', {'visits': count}, context)
 
-    # Return a rendered response to send to the client.
-    # We make use of the shortcut function to make our lives easier.
-    # Note that the first parameter is the template we wish to use.
-    return render_to_response('rango/about.html', context_dict, context)
 
 def decode_url(slug):
     return slug.replace('_', ' ')
@@ -156,7 +175,9 @@ def add_page(request, category_name_url):
              context)
 
 def register(request):
-    # Like before, get the request's context.
+    if request.session.test_cookie_worked():
+        print ">>>> TEST COOKIE WORKED!"
+        request.session.delete_test_cookie()
     context = RequestContext(request)
 
     # A boolean value for telling the template whether the registration was successful.
