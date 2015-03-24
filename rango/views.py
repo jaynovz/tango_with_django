@@ -8,6 +8,7 @@ from rango.models import Category
 from rango.models import Page
 from datetime import datetime
 from rango.bing_search import run_query
+from rango.models import UserProfile
 
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 
@@ -37,7 +38,7 @@ def add_category(request):
 
     # Bad form (or form details), no form supplied...
     # Render the form with error messages (if any).
-    return render_to_response('rango/add_category.html', {'form': form}, context)
+    return render_to_response('rango/add_category.html', {'form': form, 'categories': get_category_list()}, context)
 
 def index(request):
     request.session.set_test_cookie()
@@ -45,17 +46,8 @@ def index(request):
     # Obtain the context from the HTTP request.
     context = RequestContext(request)
 
-    # Query the database for a list of ALL categories currently stored.
-    # Order the categories by no. likes in descending order.
-    # Retrieve the top 5 only - or all if less than 5.
-    # Place the list in our context_dict dictionary which will be passed to the template engine.
-    category_list = Category.objects.order_by('-likes')[:5]
-
-    for category in category_list:
-        category.url = category.name.replace(' ', '_')
-
     page_list = Page.objects.order_by('-views')[:5]
-    context_dict = {'categories': category_list, 'pages': page_list}
+    context_dict = {'pages': page_list, 'categories': get_category_list()}
 
     if request.session.get('last_visit'):
         # The session has a value for the last visit
@@ -89,7 +81,7 @@ def about(request):
         count = 0
     request.session['visits'] = count + 1
         # remember to include the visit data
-    return render_to_response('rango/about.html', {'visits': count}, context)
+    return render_to_response('rango/about.html', {'visits': count, 'categories': get_category_list()}, context)
 
 
 def decode_url(slug):
@@ -127,12 +119,23 @@ def category(request, category_name_url):
         # We also add the category object from the database to the context dictionary.
         # We'll use this in the template to verify that the category exists.
         context_dict['category'] = category
+        context_dict['categories'] = get_category_list()
     except Category.DoesNotExist:
         # We get here if we didn't find the specified category.
         # Don't do anything - the template displays the "no category" message for us.
         pass
 
     # Go render the response and return it to the client.
+
+    if request.method == 'POST':
+        query = request.POST['query'].strip()
+
+        if query:
+            # Run our Bing function to get the results list!
+            result_list = run_query(query)
+
+            context_dict['result_list'] = result_list
+
     return render_to_response('rango/category.html', context_dict, context)
 
 def add_page(request, category_name_url):
@@ -155,7 +158,7 @@ def add_page(request, category_name_url):
             except Category.DoesNotExist:
                 # If we get here, the category does not exist.
                 # Go back and render the add category form as a way of saying the category does not exist.
-                return render_to_response('rango/add_category.html', {}, context)
+                return render_to_response('rango/add_category.html', {'categories': get_category_list()}, context)
 
             # Also, create a default value for the number of views.
             page.views = 0
@@ -176,9 +179,7 @@ def add_page(request, category_name_url):
              context)
 
 def register(request):
-    if request.session.test_cookie_worked():
-        print ">>>> TEST COOKIE WORKED!"
-        request.session.delete_test_cookie()
+
     context = RequestContext(request)
 
     # A boolean value for telling the template whether the registration was successful.
@@ -234,7 +235,7 @@ def register(request):
     # Render the template depending on the context.
     return render_to_response(
             'rango/register.html',
-            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered},
+            {'user_form': user_form, 'profile_form': profile_form, 'registered': registered, 'categories': get_category_list()},
             context)
 
 def user_login(request):
@@ -275,7 +276,7 @@ def user_login(request):
     else:
         # No context variables to pass to the template system, hence the
         # blank dictionary object...
-        return render_to_response('rango/login.html', {}, context)
+        return render_to_response('rango/login.html', {'categories': get_category_list()}, context)
 
 @login_required
 def restricted(request):
@@ -301,4 +302,20 @@ def search(request):
             # Run our Bing function to get the results list!
             result_list = run_query(query)
 
-    return render_to_response('rango/search.html', {'result_list': result_list}, context)
+    return render_to_response('rango/search.html', {'result_list': result_list, 'categories': get_category_list()}, context)
+
+def profile(request):
+    context = RequestContext(request)
+
+    user = UserProfile.objects.get(user=request.user)
+
+    return render_to_response('rango/profile.html', {'picture': user.picture, 'website': user.website, 'categories':get_category_list()}, context)
+
+def get_category_list():
+    category_list = Category.objects.order_by('-likes')[:5]
+
+    for category in category_list:
+        category.url = encode_url(category.name)
+
+    return category_list
+

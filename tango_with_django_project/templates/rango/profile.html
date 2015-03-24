@@ -1,0 +1,24 @@
+{% extends 'rango/base.html' %}
+
+
+{% block title %}Profile{% endblock %}
+
+{% block body_block %}
+
+    {% if user.is_authenticated %}
+
+<h1>{{ user.first_name }}{{ user.last_name }}</h1>
+
+<img src="127.0.0.0:8000/media/{{ picture }}" width="240px" height="390px"/>
+
+    <h4>{{ user.username }}</h4>
+    <h4>{{ user.email }}</h4>
+    <h4> <a href="{{ website }}">Website</a>
+
+    </h4>
+
+    {% else %}
+    <p>You must be logged in to view your profile.</p>
+    {% endif %}
+
+{% endblock %}
