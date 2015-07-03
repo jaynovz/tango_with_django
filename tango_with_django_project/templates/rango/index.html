@@ -2,30 +2,44 @@
 
 {% load static %} <!-- New line -->
 
-{% block title %}Home{% endblock %}
+{% block title %}Jessica's Portfolio{% endblock %}
 
 {% block body_block %}
-<div class="hero-unit">
-    <h1>Ready to Rango</h1>
-    <p>Find, Add, Share and Rango useful links and resources.</p>
-</div>
-
-
     <!--/span-->
     <div class="span6">
-        <h2>Top Five Pages</h2>
-        {% if pages %}
-        <ul>
-            {% for page in pages %}
-            <li><a href="{{ page.url}}">{{ page.title }}</a> - {{ page.category }} ({{ page.views }} view(s))</li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <strong>No pages at present.</strong>
-        {% endif %}
+            <div class="container">
+        <!-- Jssor Slider Begin -->
+        <div id="slider1_container" style="display: none; position: relative; width: 700px; height: 600px; overflow: scroll;">
+            <div u="slides" style="cursor: move; position: absolute; overflow: hidden; left: 0px; top: 0px; width: 700px; height: 600px;">
+                {% for media in jssor_media %}
+                    <div><img u="{{ media }}" src="{{ media.file.path }}" />
+                    </div>{% endfor %}
+    </div>
+        </div>
+        <!-- Jssor Slider End -->
+    </div>
 
     </div>
     <!--/span-->
 </div>
 <!--/row-->
+{% endblock %}
+{% block page-scripts %}
+    <style>
+    h2{
+        text-align: center;
+    }
+    </style>
+    <script type="text/javascript" src="{% static 'js/jssor/js/jssor.slider.mini.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            var options = {
+
+            };
+
+            $("#slider1_container").css("display", "block");
+            var jssor_slider1 = new $JssorSlider$("slider1_container", options);
+
+        });
+</script>
 {% endblock %}

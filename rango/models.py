@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from managers import JssorMediaManager
+
 
 # Create your models here.
 class Category(models.Model):
@@ -36,3 +38,14 @@ class UserProfile(models.Model):
     # Override the __unicode__() method to return out something meaningful!
     def __unicode__(self):
         return self.user.username
+
+class JssorMedia(models.Model):
+    file = models.FileField(upload_to='jssor_media/')
+    alternate_file_name = models.CharField(max_length=200, null=True)
+    alt_text = models.CharField(max_length=200, null=True)
+    uploaded = models.DateTimeField(auto_now=True, null=True)
+
+    def __unicode__(self):
+        if self.alternate_file_name:
+            return self.alternate_file_name
+        return file.name

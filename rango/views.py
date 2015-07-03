@@ -8,7 +8,7 @@ from rango.models import Category
 from rango.models import Page
 from datetime import datetime
 from rango.bing_search import run_query
-from rango.models import UserProfile
+from rango.models import UserProfile, JssorMedia
 
 from rango.forms import CategoryForm, PageForm, UserForm, UserProfileForm
 
@@ -47,7 +47,9 @@ def index(request):
     context = RequestContext(request)
 
     page_list = Page.objects.order_by('-views')[:5]
-    context_dict = {'pages': page_list, 'categories': get_category_list()}
+    context_dict = {'pages': page_list,
+                    'categories': get_category_list(),
+                    'jssor_media': JssorMedia.objects.all().order_by('uploaded')[:10]}
 
     if request.session.get('last_visit'):
         # The session has a value for the last visit
