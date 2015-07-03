@@ -14,7 +14,10 @@
                 {% for media in jssor_media %}
                     <div><img u="{{ media }}" src="{{ media.file.path }}" />
                     </div>{% endfor %}
-    </div>
+            </div>
+        <!-- Navigator Skin Begin -->
+        <!-- open 'skin\bullet-...source.html', copy and paste bullet navigator skin here -->
+    <!-- Navigator Skin End -->
         </div>
         <!-- Jssor Slider End -->
     </div>
@@ -34,8 +37,15 @@
     <script>
         $(document).ready(function () {
             var options = {
-
+                $FillMode: 1,
+                $ArrowKeyNavigation: true,
+                $BulletNavigatorOptions: {
+                    $Class: $JssorBulletNavigator$,
+                    $ChanceToShow: 2
+                }
             };
+
+
 
             $("#slider1_container").css("display", "block");
             var jssor_slider1 = new $JssorSlider$("slider1_container", options);
